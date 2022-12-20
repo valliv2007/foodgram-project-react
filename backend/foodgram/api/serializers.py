@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import exceptions, serializers
 
 from users.models import User
 
@@ -13,3 +13,17 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('email', 'id', 'username',
                   'first_name', 'last_name', 'password',)
         read_only_fields = ('id', )
+
+
+class JWTTokenSerializer(serializers.Serializer):
+    """Сериалайзер для получения токена"""
+
+    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField()
+
+    def validate(self, data):
+        if not User.objects.filter(username=data['username'],
+                                   email=data['email']).exists():
+            raise exceptions.NotFound(
+                'Такого пользователя не существует')
+        return data

@@ -26,3 +26,5 @@ class Subscription(models.Model):
     class Meta:
         verbose_name = "Subscription"
         verbose_name_plural = "Subscriptions"
+        constraints = [models.UniqueConstraint(fields=['user', 'author'],
+                       name='unique_subscribe')]

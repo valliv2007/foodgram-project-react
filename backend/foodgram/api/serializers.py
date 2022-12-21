@@ -1,18 +1,32 @@
 from rest_framework import exceptions, serializers
 
-from users.models import User
+from users.models import User, Subscription
 
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериалайзер для пользователей"""
     password = serializers.CharField(required=True, write_only=True)
-    # is_subscribed = serializers.BooleanField(required=False, default=False, read_only=True)
 
     class Meta:
         model = User
         fields = ('email', 'id', 'username',
                   'first_name', 'last_name', 'password',)
         read_only_fields = ('id', )
+
+
+class UserSubscribeSerializer(UserSerializer):
+    """Сериалайзер для пользователей c полем is_subscribed"""
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ('email', 'id', 'username',
+                  'first_name', 'last_name', 'is_subscribed')
+        model = User
+        read_only_fields = ('id', )
+
+    def get_is_subscribed(self, obj):
+        return Subscription.objects.filter(user=self.context['request'].user,
+                                           author=obj).exists()
 
 
 class JWTTokenSerializer(serializers.Serializer):

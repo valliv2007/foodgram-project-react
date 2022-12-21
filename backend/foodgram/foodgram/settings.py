@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'api',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist'
 ]
 
 MIDDLEWARE = [
@@ -103,9 +104,6 @@ USE_L10N = True
 USE_TZ = True
 AUTH_USER_MODEL = 'users.User'
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.2/howto/static-files/
-
 STATIC_URL = '/static/'
 
 REST_FRAMEWORK = {
@@ -118,6 +116,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 6, }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=5),
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.SlidingToken',),
+    'SLIDING_TOKEN_LIFETIME': timedelta(days=5),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }

@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.tokens import SlidingToken
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -37,6 +37,15 @@ class APIToken(APIView):
         serializer.is_valid(raise_exception=True)
         user = get_object_or_404(
             User, username=serializer.data['username'])
-        token = AccessToken.for_user(user)
+        token = SlidingToken.for_user(user)
         return Response(
                 {'token': str(token)}, status=status.HTTP_200_OK)
+
+
+class DeleteToken(APIView):
+    """Вьюкласс для удаления токена"""
+
+    def post(self, request):
+        token = request.auth
+        token.blacklist()
+        return Response(status=status.HTTP_204_NO_CONTENT)

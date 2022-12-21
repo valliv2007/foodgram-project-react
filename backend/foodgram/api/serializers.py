@@ -18,11 +18,11 @@ class UserSerializer(serializers.ModelSerializer):
 class JWTTokenSerializer(serializers.Serializer):
     """Сериалайзер для получения токена"""
 
-    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(max_length=150)
     email = serializers.EmailField()
 
     def validate(self, data):
-        if not User.objects.filter(username=data['username'],
+        if not User.objects.filter(password=data['password'],
                                    email=data['email']).exists():
             raise exceptions.NotFound(
                 'Такого пользователя не существует')

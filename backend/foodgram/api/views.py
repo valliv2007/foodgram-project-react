@@ -36,7 +36,8 @@ class APIToken(APIView):
         serializer = JWTTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = get_object_or_404(
-            User, username=serializer.data['username'])
+            User, password=serializer.data['password'],
+            email=serializer.data['email'])
         token = SlidingToken.for_user(user)
         return Response(
                 {'token': str(token)}, status=status.HTTP_200_OK)

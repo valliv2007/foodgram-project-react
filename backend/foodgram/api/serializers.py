@@ -41,3 +41,16 @@ class JWTTokenSerializer(serializers.Serializer):
             raise exceptions.NotFound(
                 'Такого пользователя не существует')
         return data
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """Сериалайзер для cvtysw пароля"""
+
+    current_password = serializers.CharField(max_length=150)
+    new_password = serializers.CharField(max_length=150)
+
+    def validate(self, data):
+        if self.context['request'].user.password != data['current_password']:
+            raise exceptions.ParseError(
+                'Вы ввели неверный пароль')
+        return data

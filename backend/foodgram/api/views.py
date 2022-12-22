@@ -10,7 +10,8 @@ from rest_framework import status
 from users.models import User, Subscription
 
 from .mixins import GetPostViewSet
-from .serializers import (JWTTokenSerializer, UserSerializer,
+from .serializers import (JWTTokenSerializer, ChangePasswordSerializer,
+                          UserSerializer,
                           UserSubscribeSerializer)
 
 
@@ -41,6 +42,16 @@ class UserViewSet(GetPostViewSet):
                                              context={'request': request},
                                              many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=('post',),
+            url_name='set_password', permission_classes=(IsAuthenticated,))
+    def set_password(self, request, *args, **kwargs):
+        serializer = ChangePasswordSerializer(data=request.data,
+                                              context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            request.user.password = serializer.data['new_password']
+            request.user.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class APIToken(APIView):

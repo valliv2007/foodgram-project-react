@@ -6,7 +6,8 @@ from recipes.models import Ingredient
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериалайзер для пользователей"""
-    password = serializers.CharField(required=True, write_only=True)
+    password = serializers.CharField(required=True, write_only=True,
+                                     max_length=150)
 
     class Meta:
         model = User

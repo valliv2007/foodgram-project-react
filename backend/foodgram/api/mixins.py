@@ -1,6 +1,10 @@
 from rest_framework import mixins, viewsets
 
 
-class GetPostViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
-                     mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    """Вьюсет для просмотра всех экземпляров,  публикации и удаления"""
+class GetViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
+                 viewsets.GenericViewSet):
+    """Вьюсет для просмотра  экземпляров и публикации """
+
+
+class GetPostViewSet(GetViewSet, mixins.CreateModelMixin):
+    """Вьюсет для просмотра экземпляров и публикации """

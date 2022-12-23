@@ -4,14 +4,14 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import SlidingToken
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
+from rest_framework import filters, status
 
-
+from recipes.models import Ingredient
 from users.models import User, Subscription
 
-from .mixins import GetPostViewSet
-from .serializers import (JWTTokenSerializer, ChangePasswordSerializer,
-                          UserSerializer,
+from .mixins import GetViewSet, GetPostViewSet
+from .serializers import (ChangePasswordSerializer, IngredientSerializer,
+                          JWTTokenSerializer, UserSerializer,
                           UserSubscribeSerializer)
 
 
@@ -107,3 +107,13 @@ class SubscriptionView(APIView):
                 status=status.HTTP_400_BAD_REQUEST)
         deleted_subscribtion.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class IngredientViewSet(GetViewSet):
+    """Вьюсет для работы с ингридиентами"""
+
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+    permission_classes = (AllowAny,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('^name',)

@@ -1,6 +1,7 @@
 from rest_framework import exceptions, serializers
 
 from users.models import User, Subscription
+from recipes.models import Ingredient
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -54,3 +55,11 @@ class ChangePasswordSerializer(serializers.Serializer):
             raise exceptions.ParseError(
                 'Вы ввели неверный пароль')
         return data
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+    """Сериалайзер для ингредиентов"""
+
+    class Meta:
+        model = Ingredient
+        fields = ('id', 'name',  'measurement_unit')

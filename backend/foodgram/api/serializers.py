@@ -1,7 +1,7 @@
 from rest_framework import exceptions, serializers
 
+from recipes.models import Ingredient, Tag
 from users.models import User, Subscription
-from recipes.models import Ingredient
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -27,6 +27,9 @@ class UserSubscribeSerializer(UserSerializer):
         read_only_fields = ('id', )
 
     def get_is_subscribed(self, obj):
+        if not self.context['request'].user.is_authenticated:
+            raise exceptions.NotAuthenticated(
+                'Вы не зарегистрированы')
         return Subscription.objects.filter(user=self.context['request'].user,
                                            author=obj).exists()
 
@@ -64,3 +67,11 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ('id', 'name',  'measurement_unit')
+
+
+class TagSerializer(serializers.ModelSerializer):
+    """Сериалайзер для тэгов"""
+
+    class Meta:
+        model = Tag
+        fields = ('id', 'name',  'color', 'slug')

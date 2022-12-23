@@ -6,12 +6,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import filters, status
 
-from recipes.models import Ingredient
+from recipes.models import Ingredient, Tag
 from users.models import User, Subscription
 
 from .mixins import GetViewSet, GetPostViewSet
 from .serializers import (ChangePasswordSerializer, IngredientSerializer,
-                          JWTTokenSerializer, UserSerializer,
+                          JWTTokenSerializer, TagSerializer, UserSerializer,
                           UserSubscribeSerializer)
 
 
@@ -117,3 +117,11 @@ class IngredientViewSet(GetViewSet):
     permission_classes = (AllowAny,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('^name',)
+
+
+class TagViewSet(GetViewSet):
+    """Вьюсет для работы с ингридиентами"""
+
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = (AllowAny,)

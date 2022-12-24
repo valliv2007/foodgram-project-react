@@ -1,7 +1,7 @@
 from rest_framework import exceptions, serializers
 
 from recipes.models import Ingredient, Tag
-from users.models import User, Subscription
+from users.models import Subscription, User
 
 
 class UserSerializer(serializers.ModelSerializer):

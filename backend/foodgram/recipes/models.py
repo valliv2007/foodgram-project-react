@@ -1,4 +1,9 @@
+from django.core.validators import MinValueValidator
 from django.db import models
+
+from users.models import User
+
+MINIMAL_COOKING_TIME = 1
 
 
 class Ingredient(models.Model):
@@ -27,3 +32,60 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Recipe(models.Model):
+    """Модель рецептов"""
+    ingredients = models.ManyToManyField(
+        Ingredient, through='IngredientRecipe')
+    tags = models.ManyToManyField(Tag, through='TagRecipe')
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='recipes',
+        verbose_name='Recipe_author')
+    name = models.CharField('Recipe_name', blank=False, max_length=200)
+    image = models.ImageField(
+        'Recipe_image', upload_to='recipes/', blank=False)
+    text = models.TextField('Recipe_text', blank=False)
+    cooking_time = models.IntegerField(
+        'Cooking_time', blank=False,
+        validators=(MinValueValidator(
+            MINIMAL_COOKING_TIME,
+            f'Время приготовления должно быть не меньше {MINIMAL_COOKING_TIME}'
+            ' минуты'),),)
+
+    class Meta:
+        verbose_name = 'Recipe'
+        verbose_name_plural = 'Recipes'
+
+    def __str__(self):
+        return self.name
+
+
+class IngredientRecipe(models.Model):
+    """Модель связи ингридиентов и рецептов"""
+    ingredient = models.ForeignKey(
+        Ingredient, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE)
+    amount = models.IntegerField('Amount', blank=False)
+
+    class Meta:
+        verbose_name = 'Ingredient_Recipe'
+        verbose_name_plural = 'Ingredients_Recipes'
+
+    def __str__(self):
+        return (f'{self.recipe.name} included {self.amount} of'
+                f' {self.ingredient.name}')
+
+
+class TagRecipe(models.Model):
+    """Модель связи тэгов и рецептов"""
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = 'Tag_Recipe'
+        verbose_name_plural = 'Tags_Recipes'
+
+    def __str__(self):
+        return (f'{self.recipe.name} has tag {self.tag.name}')

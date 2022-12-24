@@ -4,12 +4,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import SlidingToken
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import filters, status
+from rest_framework import filters, status, viewsets
 
 from recipes.models import Ingredient, Tag
 from users.models import User, Subscription
 
-from .mixins import GetViewSet, GetPostViewSet
+from .mixins import GetPostViewSet
 from .serializers import (ChangePasswordSerializer, IngredientSerializer,
                           JWTTokenSerializer, TagSerializer, UserSerializer,
                           UserSubscribeSerializer)
@@ -19,23 +19,28 @@ class UserViewSet(GetPostViewSet):
     """Вьюсет для работы с пользователями"""
 
     queryset = User.objects.all()
-    permission_classes = (AllowAny,)
+
+    def get_permissions(self):
+        if self.request.path != '/api/users/':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [AllowAny]
+        return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
-        """Определение сериалайзера для произведений"""
         if self.action == 'create':
             return UserSerializer
         return UserSubscribeSerializer
 
     @action(detail=False, methods=('get',),
-            url_name='me', permission_classes=(IsAuthenticated,))
+            url_name='me')
     def me(self, request, *args, **kwargs):
         serializer = UserSubscribeSerializer(request.user,
                                              context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=('get',),
-            url_name='subscriptions', permission_classes=(IsAuthenticated,))
+            url_name='subscriptions')
     def subscriptions(self, request, *args, **kwargs):
         queryset = User.objects.filter(content_maker__user=request.user.id)
         serializer = UserSubscribeSerializer(queryset,
@@ -44,7 +49,7 @@ class UserViewSet(GetPostViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=('post',),
-            url_name='set_password', permission_classes=(IsAuthenticated,))
+            url_name='set_password')
     def set_password(self, request, *args, **kwargs):
         serializer = ChangePasswordSerializer(data=request.data,
                                               context={'request': request})
@@ -109,7 +114,7 @@ class SubscriptionView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class IngredientViewSet(GetViewSet):
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для работы с ингридиентами"""
 
     queryset = Ingredient.objects.all()
@@ -119,7 +124,7 @@ class IngredientViewSet(GetViewSet):
     search_fields = ('^name',)
 
 
-class TagViewSet(GetViewSet):
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для работы с ингридиентами"""
 
     queryset = Tag.objects.all()

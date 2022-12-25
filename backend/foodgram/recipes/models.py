@@ -64,9 +64,9 @@ class Recipe(models.Model):
 class IngredientRecipe(models.Model):
     """Модель связи ингридиентов и рецептов"""
     ingredient = models.ForeignKey(
-        Ingredient, on_delete=models.CASCADE)
+        Ingredient, on_delete=models.CASCADE, related_name='recipes')
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE)
+        Recipe, on_delete=models.CASCADE, related_name='ingredientrecipes')
     amount = models.IntegerField('Amount', blank=False)
 
     class Meta:

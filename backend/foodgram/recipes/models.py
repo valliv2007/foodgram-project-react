@@ -89,3 +89,24 @@ class TagRecipe(models.Model):
 
     def __str__(self):
         return (f'{self.recipe.name} has tag {self.tag.name}')
+
+
+class Favorite(models.Model):
+    """Модель избранного"""
+    user = models.ForeignKey(User,
+                             related_name="favorites",
+                             on_delete=models.CASCADE,
+                             verbose_name="Favorite_user")
+    recipe = models.ForeignKey(Recipe,
+                               related_name="favorites",
+                               on_delete=models.CASCADE,
+                               verbose_name="Favorite_recipe")
+
+    def __str__(self):
+        return f'{self.user} add to favorite {self.recipe}'
+
+    class Meta:
+        verbose_name = "Favorite"
+        verbose_name_plural = "Favorites"
+        constraints = [models.UniqueConstraint(fields=['user', 'recipe'],
+                       name='unique_favorite')]

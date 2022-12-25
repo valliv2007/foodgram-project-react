@@ -6,11 +6,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import filters, status, viewsets
 
-from recipes.models import Ingredient, Recipe, Tag
+from recipes.models import Cart, Favorite, Ingredient, Recipe, Tag
 from users.models import User, Subscription
 
 from .mixins import GetPostViewSet
-from .serializers import (ChangePasswordSerializer, IngredientSerializer,
+from .serializers import (ChangePasswordSerializer, FavoriteSerializer,
+                          IngredientSerializer,
                           JWTTokenSerializer, RecipeReadSerializer,
                           TagSerializer, UserSerializer,
                           UserSubscribeSerializer)
@@ -141,3 +142,53 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (AllowAny,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('author',)
+
+
+class FavoriteView(APIView):
+    """Вьюкласс для избранного"""
+
+    def post(self, request, recipe_id):
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        if Favorite.objects.filter(user=request.user, recipe=recipe):
+            return Response(
+                {'error': 'Вы уже добавили этот рецепт'},
+                status=status.HTTP_400_BAD_REQUEST)
+        favorite = Favorite.objects.create(user=request.user, recipe=recipe)
+        serializer = FavoriteSerializer(favorite)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, recipe_id):
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        deleted_favorite = Favorite.objects.filter(
+            user=request.user, recipe=recipe)
+        if not deleted_favorite.exists():
+            return Response(
+                {'error': 'У вас нет этого рецепта в избранном'},
+                status=status.HTTP_400_BAD_REQUEST)
+        deleted_favorite.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CartView(APIView):
+    """Вьюкласс для списка покупок"""
+
+    def post(self, request, recipe_id):
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        if Cart.objects.filter(user=request.user, recipe=recipe):
+            return Response(
+                {'error': 'Вы уже добавили этот рецепт'},
+                status=status.HTTP_400_BAD_REQUEST)
+        cart = Cart.objects.create(user=request.user, recipe=recipe)
+        serializer = FavoriteSerializer(cart)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, recipe_id):
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        deleted_cart = Cart.objects.filter(
+            user=request.user, recipe=recipe)
+        if not deleted_cart.exists():
+            return Response(
+                {'error': 'У вас нет этого рецепта в списке покупок'},
+                status=status.HTTP_400_BAD_REQUEST)
+        deleted_cart.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -54,6 +54,7 @@ class Recipe(models.Model):
             ' минуты'),),)
 
     class Meta:
+        ordering = ('-id',)
         verbose_name = 'Recipe'
         verbose_name_plural = 'Recipes'
 

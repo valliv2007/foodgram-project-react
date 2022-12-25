@@ -131,3 +131,11 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             return False
         return Cart.objects.filter(user=self.context['request'].user,
                                    recipe=obj).exists()
+
+
+class FavoriteSerializer(serializers.Serializer):
+    """Сериалайзер для  избранного и списка покупок"""
+    id = serializers.ReadOnlyField(source='recipe.id')
+    name = serializers.ReadOnlyField(source='recipe.name')
+    image = serializers.ImageField(source='recipe.image')
+    cooking_time = serializers.ReadOnlyField(source='recipe.cooking_time')

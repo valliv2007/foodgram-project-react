@@ -3,7 +3,8 @@ import base64
 from django.core.files.base import ContentFile
 from rest_framework import exceptions, serializers
 
-from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag
+from recipes.models import (Cart, Favorite, Ingredient,
+                            IngredientRecipe, Recipe, Tag)
 from users.models import Subscription, User
 
 
@@ -109,10 +110,24 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     ingredients = IngredientRecipeSerializer(
         many=True, source='ingredientrecipes')
     image = serializers.ImageField()
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shoping_cart = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
-            'id', 'tags', 'author', 'ingredients',
-            'name', 'image', 'text', 'cooking_time')
+            'id', 'tags', 'author', 'ingredients', 'is_favorited',
+            'is_in_shoping_cart', 'name', 'image', 'text', 'cooking_time')
         model = Recipe
         read_only_fields = ('__all__', )
+
+    def get_is_favorited(self, obj):
+        if not self.context['request'].user.is_authenticated:
+            return False
+        return Favorite.objects.filter(user=self.context['request'].user,
+                                       recipe=obj).exists()
+
+    def get_is_in_shoping_cart(self, obj):
+        if not self.context['request'].user.is_authenticated:
+            return False
+        return Cart.objects.filter(user=self.context['request'].user,
+                                   recipe=obj).exists()

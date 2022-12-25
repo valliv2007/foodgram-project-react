@@ -110,3 +110,24 @@ class Favorite(models.Model):
         verbose_name_plural = "Favorites"
         constraints = [models.UniqueConstraint(fields=['user', 'recipe'],
                        name='unique_favorite')]
+
+
+class Cart(models.Model):
+    """Модель списка покупок"""
+    user = models.ForeignKey(User,
+                             related_name="carts",
+                             on_delete=models.CASCADE,
+                             verbose_name="Cart_user")
+    recipe = models.ForeignKey(Recipe,
+                               related_name="carts",
+                               on_delete=models.CASCADE,
+                               verbose_name="Cart_recipe")
+
+    def __str__(self):
+        return f'{self.user} add to cart {self.recipe}'
+
+    class Meta:
+        verbose_name = "Cart"
+        verbose_name_plural = "Carts"
+        constraints = [models.UniqueConstraint(fields=['user', 'recipe'],
+                       name='unique_cart')]

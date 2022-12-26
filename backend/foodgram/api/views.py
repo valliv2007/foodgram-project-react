@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework_simplejwt.tokens import SlidingToken
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -10,9 +11,11 @@ from recipes.models import Cart, Favorite, Ingredient, Recipe, Tag
 from users.models import User, Subscription
 
 from .mixins import GetPostViewSet
+from .permissions import RecipePermission
 from .serializers import (ChangePasswordSerializer, FavoriteSerializer,
                           IngredientSerializer,
-                          JWTTokenSerializer, RecipeReadSerializer,
+                          JWTTokenSerializer, RecipeSerializer,
+                          RecipeReadSerializer,
                           TagSerializer, UserSerializer,
                           UserSubscribeSerializer)
 
@@ -138,10 +141,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с ингридиентами"""
 
     queryset = Recipe.objects.all()
-    serializer_class = RecipeReadSerializer
-    permission_classes = (AllowAny,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('author',)
+    permission_classes = (IsAuthenticatedOrReadOnly, RecipePermission)
+
+    def get_serializer_class(self):
+        if self.action == 'create' or self.action == 'partial_update':
+            return RecipeSerializer
+        return RecipeReadSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 
 class FavoriteView(APIView):

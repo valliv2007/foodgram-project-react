@@ -3,7 +3,7 @@ from django.db import models
 
 from users.models import User
 
-MINIMAL_COOKING_TIME = 1
+MINIMAL_VALUE = 1
 
 
 class Ingredient(models.Model):
@@ -49,8 +49,8 @@ class Recipe(models.Model):
     cooking_time = models.IntegerField(
         'Cooking_time', blank=False,
         validators=(MinValueValidator(
-            MINIMAL_COOKING_TIME,
-            f'Время приготовления должно быть не меньше {MINIMAL_COOKING_TIME}'
+            MINIMAL_VALUE,
+            f'Время приготовления должно быть не меньше {MINIMAL_VALUE}'
             ' минуты'),),)
 
     class Meta:
@@ -68,7 +68,10 @@ class IngredientRecipe(models.Model):
         Ingredient, on_delete=models.CASCADE, related_name='recipes')
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE, related_name='ingredientrecipes')
-    amount = models.IntegerField('Amount', blank=False)
+    amount = models.IntegerField(
+        'Amount', blank=False, validators=(MinValueValidator(
+            MINIMAL_VALUE,
+            f'Количество должно быть не менее {MINIMAL_VALUE}'),))
 
     class Meta:
         verbose_name = 'Ingredient_Recipe'

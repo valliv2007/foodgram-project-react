@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+# from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
@@ -11,6 +12,7 @@ from recipes.models import Cart, Favorite, Ingredient, Recipe, Tag
 from users.models import User, Subscription
 
 from .mixins import GetPostViewSet
+from .paginators import RecipePagination
 from .permissions import RecipePermission
 from .serializers import (ChangePasswordSerializer, FavoriteSerializer,
                           IngredientSerializer,
@@ -24,6 +26,7 @@ class UserViewSet(GetPostViewSet):
     """Вьюсет для работы с пользователями"""
 
     queryset = User.objects.all()
+    pagination_class = RecipePagination
 
     def get_permissions(self):
         if self.request.path != '/api/users/':
@@ -45,9 +48,13 @@ class UserViewSet(GetPostViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=('get',),
-            url_name='subscriptions')
+            url_name='subscriptions',)
     def subscriptions(self, request, *args, **kwargs):
         queryset = User.objects.filter(content_maker__user=request.user.id)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
         serializer = UserSubscribeSerializer(queryset,
                                              context={'request': request},
                                              many=True)
@@ -77,7 +84,7 @@ class APIToken(APIView):
             email=serializer.data['email'])
         token = SlidingToken.for_user(user)
         return Response(
-                {'token': str(token)}, status=status.HTTP_200_OK)
+                {'auth_token': str(token)}, status=status.HTTP_200_OK)
 
 
 class DeleteToken(APIView):
@@ -125,6 +132,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
+    pagination_class = None
     filter_backends = (filters.SearchFilter,)
     search_fields = ('^name',)
 
@@ -135,6 +143,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -144,6 +153,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('author',)
     permission_classes = (IsAuthenticatedOrReadOnly, RecipePermission)
+    pagination_class = RecipePagination
 
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'partial_update':

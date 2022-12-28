@@ -202,3 +202,38 @@ class RecipeSerializer(serializers.ModelSerializer):
         serializer = RecipeReadSerializer(
             instance, context={'request': self.context['request']})
         return serializer.data
+
+
+class RecipeSubcribeSerializer(serializers.ModelSerializer):
+    """Сериалайзер для  вывода рецептов в подписках"""
+
+    class Meta:
+        fields = ('id', 'name', 'image', 'cooking_time')
+        model = Recipe
+        read_only_fields = ('__all__',)
+
+
+class SubscribtionSerializer(UserSubscribeSerializer):
+    """Сериалайзер для вывода подписок"""
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ('email', 'id', 'username',
+                  'first_name', 'last_name', 'is_subscribed',
+                  'recipes', 'recipes_count')
+        model = User
+        read_only_fields = ('__all__',)
+
+    def get_recipes(self, obj):
+        request = self.context['request']
+        recipe_limit = int(request.GET.get('recipes_limit'))
+        if recipe_limit:
+            recipes = Recipe.objects.filter(author=obj)[:recipe_limit]
+        else:
+            recipes = Recipe.objects.filter(author=obj)
+        serializer = RecipeSubcribeSerializer(recipes, many=True)
+        return serializer.data
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()

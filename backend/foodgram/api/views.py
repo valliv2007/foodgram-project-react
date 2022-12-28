@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-# from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
@@ -11,13 +11,14 @@ from rest_framework import filters, status, viewsets
 from recipes.models import Cart, Favorite, Ingredient, Recipe, Tag
 from users.models import User, Subscription
 
+from .filters import IngredientFilter
 from .mixins import GetPostViewSet
 from .paginators import RecipePagination
 from .permissions import RecipePermission
 from .serializers import (ChangePasswordSerializer, FavoriteSerializer,
                           IngredientSerializer,
                           JWTTokenSerializer, RecipeSerializer,
-                          RecipeReadSerializer,
+                          RecipeReadSerializer, SubscribtionSerializer,
                           TagSerializer, UserSerializer,
                           UserSubscribeSerializer)
 
@@ -53,12 +54,9 @@ class UserViewSet(GetPostViewSet):
         queryset = User.objects.filter(content_maker__user=request.user.id)
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
+            serializer = SubscribtionSerializer(
+                page, many=True, context={'request': request},)
             return self.get_paginated_response(serializer.data)
-        serializer = UserSubscribeSerializer(queryset,
-                                             context={'request': request},
-                                             many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=('post',),
             url_name='set_password')
@@ -133,8 +131,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
     pagination_class = None
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('^name',)
+    filter_backends = (filters.SearchFilter, DjangoFilterBackend)
+    filterset_class = IngredientFilter
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

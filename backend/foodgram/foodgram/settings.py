@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'api',
     'recipes',
     'rest_framework',
+    'django_filters',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist'
 ]

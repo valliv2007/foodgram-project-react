@@ -9,9 +9,9 @@ from rest_framework.views import APIView
 from rest_framework import filters, status, viewsets
 
 from recipes.models import Cart, Favorite, Ingredient, Recipe, Tag
-from users.models import User, Subscription
+from users.models import Subscription, User
 
-from .filters import IngredientFilter
+from .filters import IngredientFilter, RecipeFilter
 from .mixins import GetPostViewSet
 from .paginators import RecipePagination
 from .permissions import RecipePermission
@@ -108,8 +108,8 @@ class SubscriptionView(APIView):
                 {'error': 'Вы уже подписаны на этого автора'},
                 status=status.HTTP_400_BAD_REQUEST)
         Subscription.objects.create(user=request.user, author=author)
-        serializer = UserSubscribeSerializer(author,
-                                             context={'request': request})
+        serializer = SubscribtionSerializer(author,
+                                            context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, user_id):
@@ -148,8 +148,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с ингридиентами"""
 
     queryset = Recipe.objects.all()
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('author',)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
     permission_classes = (IsAuthenticatedOrReadOnly, RecipePermission)
     pagination_class = RecipePagination
 

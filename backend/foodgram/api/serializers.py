@@ -112,23 +112,23 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         many=True, source='ingredientrecipes')
     image = Base64ImageField()
     is_favorited = serializers.SerializerMethodField()
-    is_in_shoping_cart = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
             'id', 'tags', 'author', 'ingredients', 'is_favorited',
-            'is_in_shoping_cart', 'name', 'image', 'text', 'cooking_time')
+            'is_in_shopping_cart', 'name', 'image', 'text', 'cooking_time')
         model = Recipe
         read_only_fields = ('__all__',)
 
     def get_is_favorited(self, obj):
-        if not self.context['request'].user.is_authenticated:
+        if self.context['request'].user.is_anonymous:
             return False
         return Favorite.objects.filter(user=self.context['request'].user,
                                        recipe=obj).exists()
 
-    def get_is_in_shoping_cart(self, obj):
-        if not self.context['request'].user.is_authenticated:
+    def get_is_in_shopping_cart(self, obj):
+        if self.context['request'].user.is_anonymous:
             return False
         return Cart.objects.filter(user=self.context['request'].user,
                                    recipe=obj).exists()
@@ -227,9 +227,9 @@ class SubscribtionSerializer(UserSubscribeSerializer):
 
     def get_recipes(self, obj):
         request = self.context['request']
-        recipe_limit = int(request.GET.get('recipes_limit'))
+        recipe_limit = request.GET.get('recipes_limit')
         if recipe_limit:
-            recipes = Recipe.objects.filter(author=obj)[:recipe_limit]
+            recipes = Recipe.objects.filter(author=obj)[:int(recipe_limit)]
         else:
             recipes = Recipe.objects.filter(author=obj)
         serializer = RecipeSubcribeSerializer(recipes, many=True)

@@ -1,3 +1,5 @@
+from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
@@ -8,7 +10,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import filters, status, viewsets
 
-from recipes.models import Cart, Favorite, Ingredient, Recipe, Tag
+from recipes.models import (Cart, Favorite, Ingredient, IngredientRecipe,
+                            Recipe, Tag)
 from users.models import Subscription, User
 
 from .filters import IngredientFilter, RecipeFilter
@@ -160,6 +163,28 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    @action(detail=False, methods=('get',),
+            url_name='download_shopping_cart',
+            permission_classes=(IsAuthenticated,))
+    def download_shopping_cart(self, request, *args, **kwargs):
+        ingredients = IngredientRecipe.objects.filter(
+            recipe__carts__user=self.request.user).values(
+                'ingredient__name', 'ingredient__measurement_unit').annotate(
+                    amount=Sum('amount')).order_by('ingredient__name')
+        file_content = 'СПИСОК ПОКУПОК \n \n'
+        number_line = 0
+        for ingredient in ingredients:
+            number_line += 1
+            file_content += (
+                f"{number_line}. {ingredient.get('ingredient__name')} "
+                f"({ingredient.get('ingredient__measurement_unit')}) - "
+                f"{ingredient.get('amount')} \n")
+        file_content += '\nУдачных покупок и приятного аппетита! Ваш foodgram'
+
+        return HttpResponse(
+            file_content, content_type='text/plain, charset=utf8',
+            status=status.HTTP_200_OK)
 
 
 class FavoriteView(APIView):

@@ -31,13 +31,7 @@ class UserViewSet(GetPostViewSet):
 
     queryset = User.objects.all()
     pagination_class = RecipePagination
-
-    def get_permissions(self):
-        if self.request.path != '/api/users/':
-            permission_classes = [IsAuthenticated]
-        else:
-            permission_classes = [AllowAny]
-        return [permission() for permission in permission_classes]
+    permission_classes = (AllowAny,)
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -45,14 +39,14 @@ class UserViewSet(GetPostViewSet):
         return UserSubscribeSerializer
 
     @action(detail=False, methods=('get',),
-            url_name='me')
+            url_name='me', permission_classes=(IsAuthenticated,))
     def me(self, request, *args, **kwargs):
         serializer = UserSubscribeSerializer(request.user,
                                              context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=('get',),
-            url_name='subscriptions',)
+            url_name='subscriptions', permission_classes=(IsAuthenticated,))
     def subscriptions(self, request, *args, **kwargs):
         queryset = User.objects.filter(content_maker__user=request.user.id)
         page = self.paginate_queryset(queryset)
@@ -62,7 +56,7 @@ class UserViewSet(GetPostViewSet):
             return self.get_paginated_response(serializer.data)
 
     @action(detail=False, methods=('post',),
-            url_name='set_password')
+            url_name='set_password', permission_classes=(IsAuthenticated,))
     def set_password(self, request, *args, **kwargs):
         serializer = ChangePasswordSerializer(data=request.data,
                                               context={'request': request})

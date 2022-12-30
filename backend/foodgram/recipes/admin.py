@@ -21,7 +21,7 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_filter = ('name', 'author', 'tags')
+    list_filter = ('author', 'name', 'tags')
     list_display = ('name', 'author')
     inlines = (IngredientRecipeInline, TagRecipeInline)
     fieldsets = (

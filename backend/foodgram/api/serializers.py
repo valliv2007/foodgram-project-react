@@ -45,10 +45,13 @@ class JWTTokenSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     def validate(self, data):
-        if not User.objects.filter(password=data['password'],
-                                   email=data['email']).exists():
+        if not User.objects.filter(email=data['email']).exists():
             raise exceptions.NotFound(
                 'Такого пользователя не существует')
+        if not User.objects.filter(password=data['password'],
+                                   email=data['email']).exists():
+            raise exceptions.ParseError(
+                'Вы ввели неверный пароль')
         return data
 
 

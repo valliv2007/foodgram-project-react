@@ -65,7 +65,7 @@ class Recipe(models.Model):
 
 
 class IngredientRecipe(models.Model):
-    """Модель связи ингридиентов и рецептов"""
+    """Модель связи ингредиентов и рецептов"""
     ingredient = models.ForeignKey(
         Ingredient, on_delete=models.CASCADE, related_name='recipes')
     recipe = models.ForeignKey(

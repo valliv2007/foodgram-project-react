@@ -20,11 +20,11 @@ class Subscription(models.Model):
                                on_delete=models.CASCADE,
                                verbose_name="Content_maker")
 
-    def __str__(self):
-        return f'{self.user} subscribed {self.author}'
-
     class Meta:
         verbose_name = "Subscription"
         verbose_name_plural = "Subscriptions"
         constraints = [models.UniqueConstraint(fields=['user', 'author'],
                        name='unique_subscribe')]
+
+    def __str__(self):
+        return f'{self.user} subscribed {self.author}'

@@ -122,7 +122,7 @@ class SubscriptionView(APIView):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    """Вьюсет для работы с ингридиентами"""
+    """Вьюсет для работы с ингредиентами"""
 
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
@@ -133,7 +133,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
-    """Вьюсет для работы с ингридиентами"""
+    """Вьюсет для работы с тэгами"""
 
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -142,7 +142,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """Вьюсет для работы с ингридиентами"""
+    """Вьюсет для работы с рецептами"""
 
     queryset = Recipe.objects.all()
     filter_backends = (DjangoFilterBackend,)
@@ -183,49 +183,31 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 class FavoriteView(APIView):
     """Вьюкласс для избранного"""
+    MODEL = Favorite
 
     def post(self, request, recipe_id):
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        if Favorite.objects.filter(user=request.user, recipe=recipe).exists():
+        if self.MODEL.objects.filter(
+             user=request.user, recipe=recipe).exists():
             return Response(
                 {'error': 'Вы уже добавили этот рецепт'},
                 status=status.HTTP_400_BAD_REQUEST)
-        favorite = Favorite.objects.create(user=request.user, recipe=recipe)
+        favorite = self.MODEL.objects.create(user=request.user, recipe=recipe)
         serializer = FavoriteSerializer(favorite)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, recipe_id):
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        deleted_favorite = Favorite.objects.filter(
+        deleted = self.MODEL.objects.filter(
             user=request.user, recipe=recipe)
-        if not deleted_favorite.exists():
+        if not deleted.exists():
             return Response(
-                {'error': 'У вас нет этого рецепта в избранном'},
+                {'error': 'У вас нет этого рецепта'},
                 status=status.HTTP_400_BAD_REQUEST)
-        deleted_favorite.delete()
+        deleted.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class CartView(APIView):
+class CartView(FavoriteView):
     """Вьюкласс для списка покупок"""
-
-    def post(self, request, recipe_id):
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        if Cart.objects.filter(user=request.user, recipe=recipe):
-            return Response(
-                {'error': 'Вы уже добавили этот рецепт'},
-                status=status.HTTP_400_BAD_REQUEST)
-        cart = Cart.objects.create(user=request.user, recipe=recipe)
-        serializer = FavoriteSerializer(cart)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def delete(self, request, recipe_id):
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        deleted_cart = Cart.objects.filter(
-            user=request.user, recipe=recipe)
-        if not deleted_cart.exists():
-            return Response(
-                {'error': 'У вас нет этого рецепта в списке покупок'},
-                status=status.HTTP_400_BAD_REQUEST)
-        deleted_cart.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    MODEL = Cart

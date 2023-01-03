@@ -1,12 +1,10 @@
-import base64
-
-from django.shortcuts import get_object_or_404
-from django.core.files.base import ContentFile
 from rest_framework import exceptions, serializers
 
 from recipes.models import (Cart, Favorite, Ingredient,
                             IngredientRecipe, Recipe, Tag, TagRecipe)
 from users.models import Subscription, User
+from .fields import Base64ImageField
+from .utils import create_tags_and_ingredient_recipe
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -97,16 +95,6 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
         read_only_fields = ('__all__', )
 
 
-class Base64ImageField(serializers.ImageField):
-    """Переопределение поля для кодировки изображений"""
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-        return super().to_internal_value(data)
-
-
 class RecipeReadSerializer(serializers.ModelSerializer):
     """Сериалайзер для просмотра рецептов"""
     tags = TagSerializer(many=True)
@@ -158,46 +146,31 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def validate_ingredients(self, data):
         MIN_AMOUNT = 1
+        ingredients = []
         for ingredient in data:
             if int(ingredient.get('amount')) < MIN_AMOUNT:
-                raise serializers.ValidationError(
+                raise exceptions.ParseError(
                     'Количество должно быть быть больше нуля')
+            if ingredient.get('id') in ingredients:
+                raise exceptions.ParseError(
+                    'Нельзя дублировать один ингридиент')
+            ingredients.append(ingredient.get('id'))
         return data
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(**validated_data)
-        for tag in tags:
-            tag_object = get_object_or_404(Tag, id=tag)
-            TagRecipe.objects.create(tag=tag_object, recipe=recipe)
-        for ingredient in ingredients:
-            ingredient_object = get_object_or_404(
-                Ingredient, id=ingredient['id'])
-            IngredientRecipe.objects.create(
-                ingredient=ingredient_object, recipe=recipe,
-                amount=ingredient['amount'])
+        create_tags_and_ingredient_recipe(tags, ingredients, recipe)
         return recipe
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.cooking_time = validated_data.get(
-            'cooking_time', instance.cooking_time)
-        instance.image = validated_data.get('image', instance.image)
-        instance.text = validated_data.get('text', instance.text)
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
+        super().update(instance, validated_data)
         TagRecipe.objects.filter(recipe=instance).delete()
         IngredientRecipe.objects.filter(recipe=instance).delete()
-        for tag in tags:
-            tag_object = get_object_or_404(Tag, id=tag)
-            TagRecipe.objects.create(tag=tag_object, recipe=instance)
-        for ingredient in ingredients:
-            ingredient_object = get_object_or_404(
-                Ingredient, id=ingredient['id'])
-            IngredientRecipe.objects.create(
-                ingredient=ingredient_object, recipe=instance,
-                amount=ingredient['amount'])
+        create_tags_and_ingredient_recipe(tags, ingredients, instance)
         instance.save()
         return instance
 

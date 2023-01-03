@@ -13,11 +13,11 @@ router.register('ingredients', IngredientViewSet)
 router.register('tags', TagViewSet)
 router.register('recipes', RecipeViewSet)
 urlpatterns = [
-      path('users/<user_id>/subscribe/',
+      path('users/<int:user_id>/subscribe/',
            SubscriptionView.as_view(), name='subscribe'),
-      path('recipes/<recipe_id>/favorite/',
+      path('recipes/<int:recipe_id>/favorite/',
            FavoriteView.as_view(), name='favorite'),
-      path('recipes/<recipe_id>/shopping_cart/',
+      path('recipes/<int:recipe_id>/shopping_cart/',
            CartView.as_view(), name='cart'),
       path('', include(router.urls)),
       path('auth/token/login/', APIToken.as_view(), name='token'),

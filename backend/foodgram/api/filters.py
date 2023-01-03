@@ -5,7 +5,7 @@ from users.models import User
 
 
 class IngredientFilter(FilterSet):
-    """Фильтр для ингридиентов"""
+    """Фильтр для ингредиентов"""
 
     name = filters.CharFilter(
         field_name='name', lookup_expr='istartswith')
@@ -31,11 +31,11 @@ class RecipeFilter(FilterSet):
         fields = ('author', 'tags', 'is_favorited', 'is_in_shopping_cart')
 
     def get_is_favorited(self, queryset, name, value):
-        if self.request.user.is_authenticated and value is True:
+        if self.request.user.is_authenticated and value:
             return queryset.filter(favorites__user=self.request.user)
         return queryset
 
     def get_is_in_shopping_cart(self, queryset, name, value):
-        if self.request.user.is_authenticated and value is True:
+        if self.request.user.is_authenticated and value:
             return queryset.filter(carts__user=self.request.user)
         return queryset

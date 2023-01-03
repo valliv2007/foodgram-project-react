@@ -13,7 +13,6 @@ from rest_framework import filters, status, viewsets
 from recipes.models import (Cart, Favorite, Ingredient, IngredientRecipe,
                             Recipe, Tag)
 from users.models import Subscription, User
-
 from .filters import IngredientFilter, RecipeFilter
 from .mixins import GetPostViewSet
 from .paginators import RecipePagination
@@ -60,10 +59,10 @@ class UserViewSet(GetPostViewSet):
     def set_password(self, request, *args, **kwargs):
         serializer = ChangePasswordSerializer(data=request.data,
                                               context={'request': request})
-        if serializer.is_valid(raise_exception=True):
-            request.user.password = serializer.data['new_password']
-            request.user.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer.is_valid(raise_exception=True)
+        request.user.password = serializer.data['new_password']
+        request.user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class APIToken(APIView):
@@ -100,7 +99,8 @@ class SubscriptionView(APIView):
             return Response(
                 {'error': 'Вы пытаетесь подписаться на самого себя'},
                 status=status.HTTP_400_BAD_REQUEST)
-        if Subscription.objects.filter(user=request.user, author=author):
+        if Subscription.objects.filter(
+             user=request.user, author=author).exists():
             return Response(
                 {'error': 'Вы уже подписаны на этого автора'},
                 status=status.HTTP_400_BAD_REQUEST)
@@ -165,7 +165,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ingredients = IngredientRecipe.objects.filter(
             recipe__carts__user=self.request.user).values(
                 'ingredient__name', 'ingredient__measurement_unit').annotate(
-                    amount=Sum('amount')).order_by('ingredient__name')
+                    amount_sum=Sum('amount')).order_by('ingredient__name')
         file_content = 'СПИСОК ПОКУПОК \n \n'
         number_line = 0
         for ingredient in ingredients:
@@ -173,7 +173,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             file_content += (
                 f"{number_line}. {ingredient.get('ingredient__name')} "
                 f"({ingredient.get('ingredient__measurement_unit')}) - "
-                f"{ingredient.get('amount')} \n")
+                f"{ingredient.get('amount_sum')} \n")
         file_content += '\nУдачных покупок и приятного аппетита! Ваш foodgram'
 
         return HttpResponse(
@@ -186,7 +186,7 @@ class FavoriteView(APIView):
 
     def post(self, request, recipe_id):
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        if Favorite.objects.filter(user=request.user, recipe=recipe):
+        if Favorite.objects.filter(user=request.user, recipe=recipe).exists():
             return Response(
                 {'error': 'Вы уже добавили этот рецепт'},
                 status=status.HTTP_400_BAD_REQUEST)

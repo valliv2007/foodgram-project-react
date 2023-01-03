@@ -7,7 +7,7 @@ MINIMAL_VALUE = 1
 
 
 class Ingredient(models.Model):
-    """Модель ингридиентов"""
+    """Модель ингредиентов"""
     name = models.CharField('Ingredient_name', blank=False, max_length=200)
     measurement_unit = models.CharField('Measurement_unit', max_length=200)
 
@@ -78,6 +78,8 @@ class IngredientRecipe(models.Model):
     class Meta:
         verbose_name = 'Ingredient_Recipe'
         verbose_name_plural = 'Ingredients_Recipes'
+        constraints = [models.UniqueConstraint(fields=['ingredient', 'recipe'],
+                       name='unique_ingredient_recipe')]
 
     def __str__(self):
         return (f'{self.recipe.name} included {self.amount} of'
@@ -92,6 +94,8 @@ class TagRecipe(models.Model):
     class Meta:
         verbose_name = 'Tag_Recipe'
         verbose_name_plural = 'Tags_Recipes'
+        constraints = [models.UniqueConstraint(fields=['tag', 'recipe'],
+                       name='unique_tag_recipe')]
 
     def __str__(self):
         return (f'{self.recipe.name} has tag {self.tag.name}')
@@ -108,14 +112,14 @@ class Favorite(models.Model):
                                on_delete=models.CASCADE,
                                verbose_name="Favorite_recipe")
 
-    def __str__(self):
-        return f'{self.user} add to favorite {self.recipe}'
-
     class Meta:
         verbose_name = "Favorite"
         verbose_name_plural = "Favorites"
         constraints = [models.UniqueConstraint(fields=['user', 'recipe'],
                        name='unique_favorite')]
+
+    def __str__(self):
+        return f'{self.user} add to favorite {self.recipe}'
 
 
 class Cart(models.Model):
@@ -129,11 +133,11 @@ class Cart(models.Model):
                                on_delete=models.CASCADE,
                                verbose_name="Cart_recipe")
 
-    def __str__(self):
-        return f'{self.user} add to cart {self.recipe}'
-
     class Meta:
         verbose_name = "Cart"
         verbose_name_plural = "Carts"
         constraints = [models.UniqueConstraint(fields=['user', 'recipe'],
                        name='unique_cart')]
+
+    def __str__(self):
+        return f'{self.user} add to cart {self.recipe}'

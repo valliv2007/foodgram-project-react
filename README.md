@@ -5,14 +5,11 @@
 Python 3.7.9, Django 2.2.19, djangorestframework 3.12.4, Pillow 8.3.1, PyJWT 2.6.0, gunicorn 20.0.4,
 frontend  выполнен на JavaScript c использованием React.
 ### Проект размещен:
-199.99.99.99 логин: admin, пароль: admin
+http://158.160.47.246/ логин: admin, пароль: admin
 ### Как запустить проект:
 Установить и запустить Docker 
-```sh
 https://www.docker.com/products/docker-desktop
-```
 Скопировать из данного репозитория папку infra
-
 Создать внутри папки env файл со своими данными по образцу:
 ```sh
 DB_ENGINE=django.db.backends.postgresql # указываем, что работаем с postgresql

@@ -4,8 +4,6 @@
 ### Технологии:
 Python 3.7.9, Django 2.2.19, djangorestframework 3.12.4, Pillow 8.3.1, PyJWT 2.6.0, gunicorn 20.0.4,
 frontend  выполнен на JavaScript c использованием React.
-### Проект размещен:
-http://158.160.47.246/ логин: admin, пароль: admin
 ### Как запустить проект:
 Установить и запустить Docker 
 https://www.docker.com/products/docker-desktop

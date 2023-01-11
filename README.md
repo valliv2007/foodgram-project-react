@@ -1,4 +1,4 @@
-# Project Grocery Assistan (Foodgram)
+# Project Grocery Assistant (Foodgram)
 ### Description of the project:
 "Grocery Assistant" is a website where you can publish your own recipes, add other people's recipes to favorites, subscribe to other authors and create a shopping list for the chosen meals. Here's what was done during the work on the project:
 configured interaction of a Python application with external API services;
